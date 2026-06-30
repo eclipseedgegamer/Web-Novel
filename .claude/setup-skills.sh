@@ -29,7 +29,8 @@ npm install -g ui-ux-pro-max-cli \
 cat <<'EOF'
 
 Bundled (no install needed, already in .claude/skills/):
-  superpowers/  ponytail/  caveman/  ui-ux-pro-max/  ui-ux/  taste/
+  superpowers/  ponytail/  caveman/  ui-ux/
 
+Install-required (this script): taste, impeccable, ui-ux-pro-max.
 After install: reload Claude Code. For impeccable, run /impeccable init once.
 EOF

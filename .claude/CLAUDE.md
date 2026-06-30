@@ -137,8 +137,9 @@ Read `.claude/skills/superpowers/using-superpowers.md` first in every session.
 
 ---
 
-## 🖌️ UI UX PRO MAX (always active for ANY UI/design task)
-Read `.claude/skills/ui-ux-pro-max/SKILL.md` for any UI or design work.
+## 🖌️ UI UX PRO MAX (install-required — always active for ANY UI/design task)
+Installed via `setup-skills.sh` (`npm install -g ui-ux-pro-max-cli`), not bundled. Paths below are valid
+after install. Read `.claude/skills/ui-ux-pro-max/SKILL.md` for any UI or design work.
 
 **Python search engine (run inside Claude Code terminal):**
 ```bash
@@ -167,33 +168,33 @@ python3 .claude/skills/ui-ux-pro-max/scripts/search.py "glass card" --stack jetp
 ---
 
 ## ⚙️ Installing / updating skills
-Most skills are **bundled** as plain SKILL.md files (offline, no network). Three ship a CLI — install
-them by running `bash .claude/setup-skills.sh` from the repo root (writes into `.claude/skills/`,
-project scope). Re-run to update.
+Skills that ship a CLI are **install-required** (not bundled here) — run `bash .claude/setup-skills.sh`
+from the repo root to install them into `.claude/skills/` (project scope). Skills with no CLI are
+**bundled** as plain SKILL.md files (offline, no network). Re-run the script to update.
 
-| Skill | Install command | Bundled fallback? |
+| Skill | Install command | In this repo? |
 |---|---|---|
-| taste | `npx skills add leonxlnx/taste-skill --skill taste-skill --agent claude-code --scope project` | yes (`taste/`) |
-| impeccable | `npx impeccable install` (needs Node ≥24) then `/impeccable init` | no — install required |
-| ui-ux-pro-max | `npm install -g ui-ux-pro-max-cli` | yes (`ui-ux-pro-max/`) |
-| superpowers / ponytail / caveman / ui-ux | (bundled — no CLI) | yes |
+| taste | `npx skills add leonxlnx/taste-skill --skill taste-skill --agent claude-code --scope project` | install-required |
+| impeccable | `npx impeccable install` (needs Node ≥24) then `/impeccable init` | install-required |
+| ui-ux-pro-max | `npm install -g ui-ux-pro-max-cli` | install-required |
+| superpowers / ponytail / caveman / ui-ux | (no CLI) | bundled (`.claude/skills/`) |
 
 `npx skills add` can default to a global `~/.agents/skills/` path Claude Code does NOT read — always run
 project-scoped from the repo root so files land in `.claude/skills/`.
 
 ---
 
-## 🎨 TASTE + IMPECCABLE (anti-slop design judgment — for any UI/visual decision)
-Read before generating UI to avoid templated "LLM-default" output. Both are web-oriented by origin
-(scan HTML/CSS/JSX, not Kotlin) — apply the *judgment* (read-the-brief, anti-default discipline,
-minimalism), map patterns to Compose. Impeccable's detector won't scan `.kt`; use it for design
-direction + `/impeccable init` context, not as a linter here.
+## 🎨 TASTE + IMPECCABLE (install-required — anti-slop design judgment)
+Installed by `setup-skills.sh`, not bundled. Read before generating UI to avoid templated output. Both
+are web-oriented (scan HTML/CSS/JSX, not Kotlin) — apply the *judgment* (read-the-brief, anti-default
+discipline, minimalism), map patterns to Compose. impeccable's detector won't scan `.kt`; use it for
+design direction + `/impeccable init` context, not as a linter here.
 
-| Trigger | Skill |
+| Trigger | How |
 |---|---|
-| Any UI / design direction (avoid slop) | `.claude/skills/taste/taste-skill.md` |
-| Clean / minimal aesthetic (our UI goal) | `.claude/skills/taste/minimalist-skill.md` |
-| Establish design context, polish, anti-slop critique | `impeccable` (`/impeccable init`, `/impeccable polish`, `/impeccable critique`) |
+| Any UI / design direction (avoid slop) | `taste` → `.claude/skills/taste/` after install |
+| Clean / minimal aesthetic (our UI goal) | `taste` minimalist variant |
+| Establish design context, polish, critique | `impeccable`: `/impeccable init`, `/impeccable polish`, `/impeccable critique` |
 
 ---
 
