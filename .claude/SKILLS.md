@@ -3,7 +3,7 @@
 Two distribution mechanisms exist; they behave differently in **Claude Code cloud (web)** vs **local**:
 
 - **`npx skills add …`** (vercel-labs/agent-skills CLI) → writes skill files **into this repo's
-  `.claude/skills/`**. Committable. **This is the cloud-friendly path** — run it, commit the result.
+  `.claude/skills/`**. **.gitignored — installed on demand, never committed** (see `.gitignore`).
 - **`/plugin marketplace add …` + `/plugin install …`** → installs to the **user-global**
   `~/.claude/plugins/`, NOT into the repo. These are interactive slash commands for **local** Claude
   Code; in cloud they don't populate the repo. For cloud, rely on the committed copies in
@@ -14,9 +14,9 @@ committed copies for cloud and are refreshed via slash commands when local.
 
 | Skill | Source | Install command | Mechanism |
 |-------|--------|-----------------|-----------|
-| ui-ux-pro-max | `nextlevelbuilder/ui-ux-pro-max-skill` | `npx skills add nextlevelbuilder/ui-ux-pro-max-skill --skill ui-ux-pro-max --agent claude-code` | `skills add` → repo |
-| taste (design) | `Leonxlnx/taste-skill` | `npx skills add Leonxlnx/taste-skill --skill "design-taste-frontend"` | `skills add` → repo |
-| taste (minimalist) | `Leonxlnx/taste-skill` | `npx skills add Leonxlnx/taste-skill --skill "minimalist-ui"` | `skills add` → repo |
+| ui-ux-pro-max | `ui-ux-pro-max-cli` (npm) | `npm install -g ui-ux-pro-max-cli` then `uipro init -a claude` | `uipro` CLI → repo (gitignored) |
+| taste (design) | `Leonxlnx/taste-skill` | `npx skills add Leonxlnx/taste-skill --skill "design-taste-frontend" --copy` | `skills add` → repo (gitignored) |
+| taste (minimalist) | `Leonxlnx/taste-skill` | `npx skills add Leonxlnx/taste-skill --skill "minimalist-ui" --copy` | `skills add` → repo (gitignored) |
 | frontend-design | `ui-ux/frontend-design.md` (committed) | manual / Anthropic official plugin — verify exact string | committed copy |
 | shadcn | `shadcn-ui/ui` (committed) | manual / shadcn registry — verify exact string | committed copy |
 | superpowers | `obra/superpowers` | `/plugin marketplace add obra/superpowers-marketplace` then `/plugin install superpowers@superpowers-marketplace` | `/plugin` → global |
@@ -32,4 +32,5 @@ Notes:
   `.claude/skills/` copies still provide the skill text, which is what matters here.
 - gsap removed (JS-only, no Jetpack Compose target). Use native Compose animation primitives instead.
 
-Run `bash install-skills.sh` to (re)install the `skills add` ones and print the `/plugin` commands.
+Run `bash .claude/setup-skills.sh` to install the install-required skills (ui-ux-pro-max, taste,
+impeccable); the `/plugin`/curl skills stay as committed copies (refresh via slash commands when local).

@@ -1,0 +1,16 @@
+# Install-required skills — installed on demand via `bash .claude/setup-skills.sh`.
+# These are NEVER committed; each dev/session installs them locally.
+# Bundled (committed) skills are the four re-included below.
+.claude/skills/*
+!.claude/skills/caveman/
+!.claude/skills/ponytail/
+!.claude/skills/superpowers/
+!.claude/skills/ui-ux/
+
+# ui-ux-pro-max-cli / skills-CLI / impeccable installers can also drop these:
+# ui-ux-pro-max/, banner-design/, brand/, design/, design-system/, slides/,
+# ui-styling/, design-taste-frontend/, minimalist-ui/, impeccable/ — all covered
+# by the wildcard above.
+
+# Lockfile written by the `skills` CLI on install — an install artifact, not tracked.
+/skills-lock.json

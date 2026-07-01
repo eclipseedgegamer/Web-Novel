@@ -28,15 +28,19 @@ Before responding to any request — including clarifying questions — read the
 
 ## 📦 Installing / updating skills
 
-Full reference + per-skill commands: `.claude/SKILLS.md`. Run `bash .claude/install-skills.sh` from the
-repo root to (re)install. Two mechanisms:
+Full reference + per-skill commands: `.claude/SKILLS.md`. Run `bash .claude/setup-skills.sh` from the
+repo root to install the install-required skills. They are **.gitignored — installed on demand, never
+committed** (see `.gitignore`). Mechanisms (verified against the real CLIs):
 
-- **`npx skills add …`** → writes into this repo's `.claude/skills/` (commit it). **Cloud-friendly.**
-  Used for **ui-ux-pro-max** and **taste**.
+- **`ui-ux-pro-max`** → `npm install -g ui-ux-pro-max-cli` **then** `uipro init -a claude`. The global
+  install only provides the `uipro` binary; `uipro init` is what populates `.claude/skills/`
+  (creates `ui-ux-pro-max/` + sibling design folders).
+- **`taste`** → `npx skills add Leonxlnx/taste-skill --skill design-taste-frontend --copy` and
+  `--skill minimalist-ui` → installs folders `design-taste-frontend/` + `minimalist-ui/`.
 - **`/plugin marketplace add … && /plugin install …`** → installs to global `~/.claude/plugins/`, NOT
   the repo. Local-only (slash commands). Used for **superpowers**, **ponytail**; **caveman** ships a
   `curl … | bash` installer. In cloud these don't populate the repo — the committed `.claude/skills/`
-  copies are the source of truth there.
+  copies (superpowers, ponytail, caveman, ui-ux) are the source of truth there.
 
 frontend-design + shadcn are kept as committed copies. **gsap is not installed** (JS-only, no Compose
 target — use native Compose animation).
@@ -137,9 +141,10 @@ Read `.claude/skills/superpowers/using-superpowers.md` first in every session.
 
 ---
 
-## 🖌️ UI UX PRO MAX (install-required — always active for ANY UI/design task)
-Installed via `setup-skills.sh` (`npm install -g ui-ux-pro-max-cli`), not bundled. Paths below are valid
-after install. Read `.claude/skills/ui-ux-pro-max/SKILL.md` for any UI or design work.
+## 🖌️ UI UX PRO MAX (install-required — run setup-skills.sh first; NOT present until installed)
+Install via `bash .claude/setup-skills.sh` (`npm install -g ui-ux-pro-max-cli` **then** `uipro init -a
+claude`). .gitignored, not committed — the paths below exist only after that install. Read
+`.claude/skills/ui-ux-pro-max/SKILL.md` for any UI or design work.
 
 **Python search engine (run inside Claude Code terminal):**
 ```bash
@@ -174,13 +179,14 @@ from the repo root to install them into `.claude/skills/` (project scope). Skill
 
 | Skill | Install command | In this repo? |
 |---|---|---|
-| taste | `npx skills add leonxlnx/taste-skill --skill taste-skill --agent claude-code --scope project` | install-required |
-| impeccable | `npx impeccable install` (needs Node ≥24) then `/impeccable init` | install-required |
-| ui-ux-pro-max | `npm install -g ui-ux-pro-max-cli` | install-required |
-| superpowers / ponytail / caveman / ui-ux | (no CLI) | bundled (`.claude/skills/`) |
+| taste | `npx skills add Leonxlnx/taste-skill --skill design-taste-frontend --copy` (+ `--skill minimalist-ui`) | install-required (gitignored) |
+| impeccable | `npx impeccable install` (needs Node ≥24) then `/impeccable init` | install-required (gitignored) |
+| ui-ux-pro-max | `npm install -g ui-ux-pro-max-cli` **then** `uipro init -a claude` | install-required (gitignored) |
+| superpowers / ponytail / caveman / ui-ux | (no CLI) | bundled (committed) |
 
 `npx skills add` can default to a global `~/.agents/skills/` path Claude Code does NOT read — always run
-project-scoped from the repo root so files land in `.claude/skills/`.
+from the repo root with `--agent claude-code --copy` so files land in `.claude/skills/`. The real taste
+folders are `design-taste-frontend/` and `minimalist-ui/` (there is no `taste/` folder or `taste-skill`).
 
 ---
 
@@ -192,9 +198,9 @@ design direction + `/impeccable init` context, not as a linter here.
 
 | Trigger | How |
 |---|---|
-| Any UI / design direction (avoid slop) | `taste` → `.claude/skills/taste/` after install |
-| Clean / minimal aesthetic (our UI goal) | `taste` minimalist variant |
-| Establish design context, polish, critique | `impeccable`: `/impeccable init`, `/impeccable polish`, `/impeccable critique` |
+| Any UI / design direction (avoid slop) | `taste` → `.claude/skills/design-taste-frontend/` after install |
+| Clean / minimal aesthetic (our UI goal) | `taste` → `.claude/skills/minimalist-ui/` |
+| Establish design context, polish, critique | `impeccable`: `/impeccable init`, `/impeccable polish`, `/impeccable critique` (needs Node ≥24) |
 
 ---
 
