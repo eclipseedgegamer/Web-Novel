@@ -1,5 +1,6 @@
 package com.eclipse.webnovel.ui.detail
 
+import android.app.Application
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,6 +15,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Bookmark
+import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -36,17 +39,20 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import com.eclipse.webnovel.data.library.LibraryRepository
 import com.eclipse.webnovel.data.model.ChapterRef
 import com.eclipse.webnovel.data.model.NovelDetail
 import com.eclipse.webnovel.data.source.RoyalRoadSource
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 sealed interface DetailUiState {
@@ -55,12 +61,20 @@ sealed interface DetailUiState {
     data class Error(val message: String) : DetailUiState
 }
 
-class DetailViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
+class DetailViewModel(
+    app: Application,
+    savedStateHandle: SavedStateHandle,
+) : AndroidViewModel(app) {
+
     private val source = RoyalRoadSource()
+    private val library = LibraryRepository(app)
     private val novelUrl: String = requireNotNull(savedStateHandle.get<String>("url")) { "missing url arg" }
 
     private val _state = MutableStateFlow<DetailUiState>(DetailUiState.Loading)
     val state: StateFlow<DetailUiState> = _state.asStateFlow()
+
+    val inLibrary: StateFlow<Boolean> = library.isInLibrary(novelUrl)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
 
     init { load() }
 
@@ -73,6 +87,13 @@ class DetailViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
             )
         }
     }
+
+    fun toggleLibrary() {
+        val detail = (_state.value as? DetailUiState.Success)?.detail ?: return
+        viewModelScope.launch {
+            if (inLibrary.value) library.remove(detail.summary.url) else library.add(detail)
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -83,6 +104,7 @@ fun DetailScreen(
     viewModel: DetailViewModel = viewModel(),
 ) {
     val state by viewModel.state.collectAsState()
+    val inLibrary by viewModel.inLibrary.collectAsState()
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
@@ -93,9 +115,18 @@ fun DetailScreen(
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
+                actions = {
+                    IconButton(onClick = viewModel::toggleLibrary) {
+                        Icon(
+                            imageVector = if (inLibrary) Icons.Filled.Bookmark else Icons.Outlined.BookmarkBorder,
+                            contentDescription = if (inLibrary) "Remove from library" else "Add to library",
+                        )
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.Transparent,
                     navigationIconContentColor = MaterialTheme.colorScheme.onBackground,
+                    actionIconContentColor = MaterialTheme.colorScheme.primary,
                 ),
             )
         },

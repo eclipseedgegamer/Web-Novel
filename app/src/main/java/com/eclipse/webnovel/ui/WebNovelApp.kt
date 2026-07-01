@@ -32,8 +32,8 @@ import com.eclipse.webnovel.ui.nav.Routes
 import com.eclipse.webnovel.ui.nav.TopDest
 import com.eclipse.webnovel.ui.detail.DetailScreen
 import com.eclipse.webnovel.ui.explore.ExploreScreen
+import com.eclipse.webnovel.ui.library.LibraryScreen
 import com.eclipse.webnovel.ui.reader.ReaderScreen
-import com.eclipse.webnovel.ui.screens.LibraryScreen
 import com.eclipse.webnovel.ui.screens.SavedScreen
 import com.eclipse.webnovel.ui.screens.SearchScreen
 import com.eclipse.webnovel.ui.screens.SettingsScreen
@@ -76,7 +76,9 @@ fun WebNovelApp(
                 )
             }
             composable(TopDest.Search.route) { SearchScreen() }
-            composable(TopDest.Library.route) { LibraryScreen() }
+            composable(TopDest.Library.route) {
+                LibraryScreen(onOpenNovel = { navController.navigate("${Routes.DETAIL}?url=${Uri.encode(it)}") })
+            }
             composable(TopDest.Saved.route) { SavedScreen() }
             composable(Routes.SETTINGS) {
                 SettingsScreen(

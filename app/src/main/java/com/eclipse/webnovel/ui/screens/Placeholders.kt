@@ -22,11 +22,6 @@ fun SearchScreen() {
 }
 
 @Composable
-fun LibraryScreen() {
-    PlaceholderScaffold(title = "Library", body = "Your reading list — Reading / Completed / All.")
-}
-
-@Composable
 fun SavedScreen() {
     PlaceholderScaffold(title = "Saved", body = "Offline downloads and storage.")
 }
