@@ -1,39 +1,51 @@
 package com.eclipse.webnovel.ui.theme
 
-import androidx.compose.foundation.isSystemInDarkTheme
+import android.app.Activity
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
+import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.platform.LocalView
+import androidx.core.view.WindowCompat
 
-// Emerald Green is the default accent. The full four-preset theme system
-// (Emerald / Dark-AMOLED / Light / Sand) lands in a follow-up Phase 1 step;
-// this is the minimal seed so the app themes correctly from day one.
-private val Emerald = Color(0xFF10B981)
-private val EmeraldContainer = Color(0xFF0B3D2E)
+enum class AppTheme(val label: String) {
+    EMERALD("Emerald"),
+    DARK("Dark"),
+    LIGHT("Light"),
+    SAND("Sand");
 
-private val LightColors = lightColorScheme(
-    primary = Emerald,
-    onPrimary = Color.White,
-    primaryContainer = EmeraldContainer,
-    onPrimaryContainer = Color.White,
-)
+    val isLight: Boolean get() = this == LIGHT || this == SAND
 
-private val DarkColors = darkColorScheme(
-    primary = Emerald,
-    onPrimary = Color(0xFF00251A),
-    background = Color(0xFF04140F),
-    surface = Color(0xFF04140F),
-)
+    companion object {
+        val Default = EMERALD
+        fun fromName(name: String?): AppTheme = entries.firstOrNull { it.name == name } ?: Default
+    }
+}
 
 @Composable
 fun WebNovelTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
+    appTheme: AppTheme = AppTheme.Default,
     content: @Composable () -> Unit,
 ) {
+    val colors = when (appTheme) {
+        AppTheme.EMERALD -> EmeraldColors
+        AppTheme.DARK -> DarkColors
+        AppTheme.LIGHT -> LightColors
+        AppTheme.SAND -> SandColors
+    }
+
+    val view = LocalView.current
+    if (!view.isInEditMode) {
+        SideEffect {
+            val window = (view.context as Activity).window
+            val controller = WindowCompat.getInsetsController(window, view)
+            controller.isAppearanceLightStatusBars = appTheme.isLight
+            controller.isAppearanceLightNavigationBars = appTheme.isLight
+        }
+    }
+
     MaterialTheme(
-        colorScheme = if (darkTheme) DarkColors else LightColors,
+        colorScheme = colors,
+        typography = WebNovelTypography,
         content = content,
     )
 }
