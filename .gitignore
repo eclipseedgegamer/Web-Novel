@@ -14,3 +14,22 @@
 
 # Lockfile written by the `skills` CLI on install — an install artifact, not tracked.
 /skills-lock.json
+
+# ── Android / Gradle ──────────────────────────────────────────────
+.gradle/
+build/
+/app/build/
+/local.properties
+*.apk
+*.aab
+*.ap_
+*.dex
+.cxx/
+captures/
+# IDE
+.idea/
+*.iml
+.DS_Store
+# Keep the committed Gradle wrapper (do NOT ignore gradle/wrapper/*.jar)
+!gradle/wrapper/gradle-wrapper.jar
+
