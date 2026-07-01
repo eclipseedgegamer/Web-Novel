@@ -3,11 +3,7 @@ package com.eclipse.webnovel.ui.screens
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -19,19 +15,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-
-@Composable
-fun ExploreScreen(onOpenSettings: () -> Unit) {
-    PlaceholderScaffold(
-        title = "Explore",
-        body = "Live RoyalRoad novels land here next.",
-        action = {
-            IconButton(onClick = onOpenSettings) {
-                Icon(Icons.Outlined.Settings, contentDescription = "Settings")
-            }
-        },
-    )
-}
 
 @Composable
 fun SearchScreen() {
@@ -50,21 +33,15 @@ fun SavedScreen() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun PlaceholderScaffold(
-    title: String,
-    body: String,
-    action: @Composable () -> Unit = {},
-) {
+private fun PlaceholderScaffold(title: String, body: String) {
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
                 title = { Text(title, style = MaterialTheme.typography.headlineMedium) },
-                actions = { action() },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.Transparent,
                     titleContentColor = MaterialTheme.colorScheme.onBackground,
-                    actionIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
                 ),
             )
         },

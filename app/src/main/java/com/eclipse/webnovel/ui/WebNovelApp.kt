@@ -20,14 +20,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import android.net.Uri
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.eclipse.webnovel.ui.nav.Routes
 import com.eclipse.webnovel.ui.nav.TopDest
-import com.eclipse.webnovel.ui.screens.ExploreScreen
+import com.eclipse.webnovel.ui.detail.DetailScreen
+import com.eclipse.webnovel.ui.explore.ExploreScreen
+import com.eclipse.webnovel.ui.reader.ReaderScreen
 import com.eclipse.webnovel.ui.screens.LibraryScreen
 import com.eclipse.webnovel.ui.screens.SavedScreen
 import com.eclipse.webnovel.ui.screens.SearchScreen
@@ -65,7 +70,10 @@ fun WebNovelApp(
             modifier = Modifier.padding(padding),
         ) {
             composable(TopDest.Explore.route) {
-                ExploreScreen(onOpenSettings = { navController.navigate(Routes.SETTINGS) })
+                ExploreScreen(
+                    onOpenSettings = { navController.navigate(Routes.SETTINGS) },
+                    onOpenNovel = { navController.navigate("${Routes.DETAIL}?url=${Uri.encode(it.url)}") },
+                )
             }
             composable(TopDest.Search.route) { SearchScreen() }
             composable(TopDest.Library.route) { LibraryScreen() }
@@ -76,6 +84,21 @@ fun WebNovelApp(
                     onThemeChange = onThemeChange,
                     onBack = { navController.popBackStack() },
                 )
+            }
+            composable(
+                route = "${Routes.DETAIL}?url={url}",
+                arguments = listOf(navArgument("url") { type = NavType.StringType }),
+            ) {
+                DetailScreen(
+                    onBack = { navController.popBackStack() },
+                    onOpenChapter = { navController.navigate("${Routes.READER}?url=${Uri.encode(it.url)}") },
+                )
+            }
+            composable(
+                route = "${Routes.READER}?url={url}",
+                arguments = listOf(navArgument("url") { type = NavType.StringType }),
+            ) {
+                ReaderScreen(onBack = { navController.popBackStack() })
             }
         }
     }

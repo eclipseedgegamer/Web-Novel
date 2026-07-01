@@ -56,6 +56,11 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.material.icons.extended)
+    implementation(libs.okhttp)
+    implementation(libs.jsoup)
+    implementation(libs.coil.compose)
+    implementation(libs.kotlinx.coroutines.android)
     // haze (backdrop blur) is wired in the dedicated glass step; catalog entry kept ready.
     debugImplementation(libs.androidx.ui.tooling)
+    testImplementation(libs.junit)
 }

@@ -21,4 +21,6 @@ sealed class TopDest(val route: String, val label: String, val icon: ImageVector
 
 object Routes {
     const val SETTINGS = "settings"
+    const val DETAIL = "detail"
+    const val READER = "reader"
 }
