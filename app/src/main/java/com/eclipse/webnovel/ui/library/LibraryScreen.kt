@@ -14,6 +14,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -35,15 +36,25 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.eclipse.webnovel.data.db.LibraryNovelEntity
+import com.eclipse.webnovel.data.db.ReadingStateEntity
 import com.eclipse.webnovel.data.library.LibraryRepository
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+
+data class LibraryItem(val novel: LibraryNovelEntity, val state: ReadingStateEntity?)
 
 class LibraryViewModel(app: Application) : AndroidViewModel(app) {
     private val repository = LibraryRepository(app)
-    val library: StateFlow<List<LibraryNovelEntity>> = repository.observeLibrary()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    val library: StateFlow<List<LibraryItem>> = combine(
+        repository.observeLibrary(),
+        repository.observeAllStates(),
+    ) { novels, states ->
+        val byUrl = states.associateBy { it.novelUrl }
+        novels.map { LibraryItem(it, byUrl[it.novelUrl]) }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -52,7 +63,7 @@ fun LibraryScreen(
     onOpenNovel: (String) -> Unit,
     viewModel: LibraryViewModel = viewModel(),
 ) {
-    val novels by viewModel.library.collectAsState()
+    val items by viewModel.library.collectAsState()
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
@@ -66,7 +77,7 @@ fun LibraryScreen(
         },
     ) { padding ->
         Box(Modifier.fillMaxSize().padding(padding)) {
-            if (novels.isEmpty()) {
+            if (items.isEmpty()) {
                 Text(
                     text = "No saved novels yet.\nBookmark one from its page.",
                     style = MaterialTheme.typography.bodyLarge,
@@ -80,7 +91,7 @@ fun LibraryScreen(
                     contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    items(novels) { novel -> LibraryRow(novel) { onOpenNovel(novel.novelUrl) } }
+                    items(items) { item -> LibraryRow(item) { onOpenNovel(item.novel.novelUrl) } }
                 }
             }
         }
@@ -88,7 +99,7 @@ fun LibraryScreen(
 }
 
 @Composable
-private fun LibraryRow(novel: LibraryNovelEntity, onClick: () -> Unit) {
+private fun LibraryRow(item: LibraryItem, onClick: () -> Unit) {
     androidx.compose.foundation.layout.Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -96,25 +107,41 @@ private fun LibraryRow(novel: LibraryNovelEntity, onClick: () -> Unit) {
         horizontalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         AsyncImage(
-            model = novel.coverUrl,
-            contentDescription = novel.title,
+            model = item.novel.coverUrl,
+            contentDescription = item.novel.title,
             contentScale = ContentScale.Crop,
             modifier = Modifier.width(60.dp).height(86.dp).clip(RoundedCornerShape(10.dp)),
         )
         Column(Modifier.padding(top = 4.dp)) {
             Text(
-                text = novel.title,
+                text = item.novel.title,
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onBackground,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
             )
-            if (!novel.author.isNullOrBlank()) {
+            if (!item.novel.author.isNullOrBlank()) {
                 Text(
-                    text = novel.author,
+                    text = item.novel.author,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 2.dp),
+                )
+            }
+            val state = item.state
+            if (state != null && state.totalChapters > 0) {
+                val fraction = ((state.chapterIndex + 1).toFloat() / state.totalChapters).coerceIn(0f, 1f)
+                Text(
+                    text = "Ch ${state.chapterIndex + 1} / ${state.totalChapters}",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 8.dp),
+                )
+                LinearProgressIndicator(
+                    progress = { fraction },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 4.dp),
                 )
             }
         }

@@ -14,3 +14,14 @@ data class LibraryNovelEntity(
     val status: String?,
     val addedAt: Long,
 )
+
+/** Where the user last was in a novel: the last-opened chapter and its position. */
+@Entity(tableName = "reading_state")
+data class ReadingStateEntity(
+    @PrimaryKey val novelUrl: String,
+    val lastChapterUrl: String,
+    val lastChapterTitle: String,
+    val chapterIndex: Int,
+    val totalChapters: Int,
+    val updatedAt: Long,
+)

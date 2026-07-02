@@ -11,7 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -44,6 +44,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import com.eclipse.webnovel.data.db.ReadingStateEntity
 import com.eclipse.webnovel.data.library.LibraryRepository
 import com.eclipse.webnovel.data.model.ChapterRef
 import com.eclipse.webnovel.data.model.NovelDetail
@@ -76,6 +77,9 @@ class DetailViewModel(
     val inLibrary: StateFlow<Boolean> = library.isInLibrary(novelUrl)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
 
+    val readingState: StateFlow<ReadingStateEntity?> = library.observeState(novelUrl)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
     init { load() }
 
     fun load() {
@@ -94,6 +98,10 @@ class DetailViewModel(
             if (inLibrary.value) library.remove(detail.summary.url) else library.add(detail)
         }
     }
+
+    fun recordReading(chapter: ChapterRef, index: Int, total: Int) {
+        viewModelScope.launch { library.recordReading(novelUrl, chapter, index, total) }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -105,6 +113,8 @@ fun DetailScreen(
 ) {
     val state by viewModel.state.collectAsState()
     val inLibrary by viewModel.inLibrary.collectAsState()
+    val readingState by viewModel.readingState.collectAsState()
+
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
@@ -146,14 +156,25 @@ fun DetailScreen(
                     )
                     Button(onClick = viewModel::load) { Text("Retry") }
                 }
-                is DetailUiState.Success -> DetailContent(s.detail, onOpenChapter)
+                is DetailUiState.Success -> DetailContent(
+                    detail = s.detail,
+                    readingState = readingState,
+                    onOpenChapter = { chapter, index ->
+                        viewModel.recordReading(chapter, index, s.detail.chapters.size)
+                        onOpenChapter(chapter)
+                    },
+                )
             }
         }
     }
 }
 
 @Composable
-private fun DetailContent(detail: NovelDetail, onOpenChapter: (ChapterRef) -> Unit) {
+private fun DetailContent(
+    detail: NovelDetail,
+    readingState: ReadingStateEntity?,
+    onOpenChapter: (ChapterRef, Int) -> Unit,
+) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = androidx.compose.foundation.layout.PaddingValues(20.dp),
@@ -183,6 +204,16 @@ private fun DetailContent(detail: NovelDetail, onOpenChapter: (ChapterRef) -> Un
                         modifier = Modifier.padding(top = 4.dp),
                     )
                 }
+                if (detail.chapters.isNotEmpty()) {
+                    val targetIndex = readingState
+                        ?.let { rs -> detail.chapters.indexOfFirst { it.url == rs.lastChapterUrl } }
+                        ?.takeIf { it >= 0 } ?: 0
+                    val label = if (readingState != null) "Continue · Ch ${targetIndex + 1}" else "Start reading"
+                    Button(
+                        onClick = { onOpenChapter(detail.chapters[targetIndex], targetIndex) },
+                        modifier = Modifier.padding(top = 16.dp),
+                    ) { Text(label) }
+                }
             }
         }
         item {
@@ -201,8 +232,8 @@ private fun DetailContent(detail: NovelDetail, onOpenChapter: (ChapterRef) -> Un
                 modifier = Modifier.padding(top = 10.dp, bottom = 2.dp),
             )
         }
-        items(detail.chapters) { chapter ->
-            ChapterRow(chapter) { onOpenChapter(chapter) }
+        itemsIndexed(detail.chapters) { index, chapter ->
+            ChapterRow(chapter) { onOpenChapter(chapter, index) }
             HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f))
         }
     }

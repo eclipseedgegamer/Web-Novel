@@ -5,10 +5,15 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 
-@Database(entities = [LibraryNovelEntity::class], version = 1, exportSchema = false)
+@Database(
+    entities = [LibraryNovelEntity::class, ReadingStateEntity::class],
+    version = 2,
+    exportSchema = false,
+)
 abstract class WebNovelDatabase : RoomDatabase() {
 
     abstract fun libraryDao(): LibraryDao
+    abstract fun readingStateDao(): ReadingStateDao
 
     companion object {
         @Volatile
@@ -20,7 +25,11 @@ abstract class WebNovelDatabase : RoomDatabase() {
                     context.applicationContext,
                     WebNovelDatabase::class.java,
                     "webnovel.db",
-                ).build().also { instance = it }
+                )
+                    // Pre-release: no real user data yet, so recreate on schema change.
+                    .fallbackToDestructiveMigration(dropAllTables = true)
+                    .build()
+                    .also { instance = it }
             }
     }
 }
