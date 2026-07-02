@@ -1,6 +1,7 @@
 package com.eclipse.webnovel.data.search
 
-import com.eclipse.webnovel.data.source.SourceRegistry
+import com.eclipse.webnovel.data.source.NovelSource
+import com.eclipse.webnovel.data.source.SourceHealth
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -15,11 +16,12 @@ data class DedupedNovel(val title: String, val coverUrl: String?, val hits: List
 /** Parallel multi-source search with title-based dedup and relevance ranking. */
 class SearchRepository {
 
-    suspend fun search(query: String): List<DedupedNovel> = coroutineScope {
-        val hits = SourceRegistry.all.map { source ->
+    suspend fun search(query: String, sources: List<NovelSource>): List<DedupedNovel> = coroutineScope {
+        val hits = sources.map { source ->
             async(Dispatchers.IO) {
-                runCatching { source.search(query) }.getOrDefault(emptyList())
-                    .map { summary -> source to summary }
+                val result = runCatching { source.search(query) }
+                SourceHealth.record(source.id, result.isSuccess)
+                result.getOrDefault(emptyList()).map { summary -> source to summary }
             }
         }.awaitAll().flatten()
 

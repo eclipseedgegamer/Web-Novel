@@ -24,4 +24,5 @@ object Routes {
     const val DETAIL = "detail"
     const val READER = "reader"
     const val UPDATES = "updates"
+    const val SOURCES = "sources"
 }

@@ -36,6 +36,7 @@ import com.eclipse.webnovel.ui.library.LibraryScreen
 import com.eclipse.webnovel.ui.reader.ReaderScreen
 import com.eclipse.webnovel.ui.saved.SavedScreen
 import com.eclipse.webnovel.ui.search.SearchScreen
+import com.eclipse.webnovel.ui.sources.SourcesScreen
 import com.eclipse.webnovel.ui.updates.UpdatesScreen
 import com.eclipse.webnovel.ui.screens.SettingsScreen
 import com.eclipse.webnovel.ui.theme.AppTheme
@@ -90,8 +91,12 @@ fun WebNovelApp(
                 SettingsScreen(
                     currentTheme = currentTheme,
                     onThemeChange = onThemeChange,
+                    onOpenSources = { navController.navigate(Routes.SOURCES) },
                     onBack = { navController.popBackStack() },
                 )
+            }
+            composable(Routes.SOURCES) {
+                SourcesScreen(onBack = { navController.popBackStack() })
             }
             composable(
                 route = "${Routes.DETAIL}?url={url}",

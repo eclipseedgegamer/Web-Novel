@@ -40,6 +40,7 @@ import com.eclipse.webnovel.ui.theme.SandColors
 fun SettingsScreen(
     currentTheme: AppTheme,
     onThemeChange: (AppTheme) -> Unit,
+    onOpenSources: () -> Unit,
     onBack: () -> Unit,
 ) {
     Scaffold(
@@ -76,6 +77,23 @@ fun SettingsScreen(
             AppTheme.entries.forEach { theme ->
                 ThemeRow(theme = theme, selected = theme == currentTheme) { onThemeChange(theme) }
             }
+            Text(
+                text = "SOURCES",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 16.dp, start = 4.dp),
+            )
+            Text(
+                text = "Manage sources",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onBackground,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(MaterialTheme.colorScheme.surface)
+                    .clickable(onClick = onOpenSources)
+                    .padding(16.dp),
+            )
         }
     }
 }

@@ -42,15 +42,19 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.eclipse.webnovel.data.search.DedupedNovel
 import com.eclipse.webnovel.data.search.SearchRepository
+import com.eclipse.webnovel.data.settings.SettingsRepository
+import com.eclipse.webnovel.data.source.SourceRegistry
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 sealed interface SearchUiState {
@@ -60,8 +64,9 @@ sealed interface SearchUiState {
     data class Error(val message: String) : SearchUiState
 }
 
-class SearchViewModel : ViewModel() {
+class SearchViewModel(app: Application) : AndroidViewModel(app) {
     private val repository = SearchRepository()
+    private val settings = SettingsRepository(app)
     private val _state = MutableStateFlow<SearchUiState>(SearchUiState.Idle)
     val state: StateFlow<SearchUiState> = _state.asStateFlow()
 
@@ -69,7 +74,9 @@ class SearchViewModel : ViewModel() {
         if (query.isBlank()) return
         _state.value = SearchUiState.Loading
         viewModelScope.launch {
-            _state.value = runCatching { repository.search(query) }.fold(
+            val disabled = settings.disabledSources.first()
+            val sources = SourceRegistry.all.filter { it.id !in disabled }
+            _state.value = runCatching { repository.search(query, sources) }.fold(
                 onSuccess = { SearchUiState.Results(it) },
                 onFailure = { SearchUiState.Error(it.message ?: "Search failed") },
             )
