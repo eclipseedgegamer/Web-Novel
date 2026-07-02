@@ -1,6 +1,7 @@
 package com.eclipse.webnovel.data.library
 
 import android.content.Context
+import com.eclipse.webnovel.data.db.ChapterUpdateEntity
 import com.eclipse.webnovel.data.db.LibraryNovelEntity
 import com.eclipse.webnovel.data.db.ReadingStateEntity
 import com.eclipse.webnovel.data.db.WebNovelDatabase
@@ -14,6 +15,7 @@ class LibraryRepository(context: Context) {
     private val db = WebNovelDatabase.get(context)
     private val dao = db.libraryDao()
     private val stateDao = db.readingStateDao()
+    private val updateDao = db.chapterUpdateDao()
 
     fun observeLibrary(): Flow<List<LibraryNovelEntity>> = dao.observeAll()
 
@@ -46,9 +48,16 @@ class LibraryRepository(context: Context) {
                 author = detail.author,
                 status = detail.status,
                 addedAt = System.currentTimeMillis(),
+                lastKnownChapters = detail.chapters.size,
             ),
         )
     }
 
     suspend fun remove(novelUrl: String) = dao.delete(novelUrl)
+
+    fun observeUpdates(): Flow<List<ChapterUpdateEntity>> = updateDao.observeAll()
+
+    fun observeUnseenCount(): Flow<Int> = updateDao.observeUnseenCount()
+
+    suspend fun markUpdatesSeen() = updateDao.markAllSeen()
 }

@@ -1,10 +1,12 @@
 package com.eclipse.webnovel.ui.library
 
 import android.app.Application
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -13,7 +15,13 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -23,6 +31,9 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -45,6 +56,8 @@ import kotlinx.coroutines.flow.stateIn
 
 data class LibraryItem(val novel: LibraryNovelEntity, val state: ReadingStateEntity?)
 
+enum class LibraryTab(val label: String) { ALL("All"), READING("Reading"), COMPLETED("Completed") }
+
 class LibraryViewModel(app: Application) : AndroidViewModel(app) {
     private val repository = LibraryRepository(app)
 
@@ -55,43 +68,70 @@ class LibraryViewModel(app: Application) : AndroidViewModel(app) {
         val byUrl = states.associateBy { it.novelUrl }
         novels.map { LibraryItem(it, byUrl[it.novelUrl]) }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    val unseenUpdates: StateFlow<Int> = repository.observeUnseenCount()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LibraryScreen(
     onOpenNovel: (String) -> Unit,
+    onOpenUpdates: () -> Unit,
     viewModel: LibraryViewModel = viewModel(),
 ) {
     val items by viewModel.library.collectAsState()
+    val unseen by viewModel.unseenUpdates.collectAsState()
+    var tab by rememberSaveable { mutableStateOf(LibraryTab.ALL) }
+
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
                 title = { Text("Library", style = MaterialTheme.typography.headlineMedium) },
+                actions = {
+                    IconButton(onClick = onOpenUpdates) {
+                        BadgedBox(badge = { if (unseen > 0) Badge() }) {
+                            Icon(Icons.Outlined.Notifications, contentDescription = "Updates")
+                        }
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.Transparent,
                     titleContentColor = MaterialTheme.colorScheme.onBackground,
+                    actionIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
                 ),
             )
         },
     ) { padding ->
-        Box(Modifier.fillMaxSize().padding(padding)) {
-            if (items.isEmpty()) {
-                Text(
-                    text = "No saved novels yet.\nBookmark one from its page.",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.align(Alignment.Center).padding(24.dp),
-                )
-            } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    items(items) { item -> LibraryRow(item) { onOpenNovel(item.novel.novelUrl) } }
+        Column(Modifier.fillMaxSize().padding(padding)) {
+            TabChips(selected = tab, onSelect = { tab = it })
+            val filtered = when (tab) {
+                LibraryTab.ALL -> items
+                LibraryTab.READING -> items.filter { it.state != null }
+                LibraryTab.COMPLETED -> items.filter { it.novel.status.equals("COMPLETED", ignoreCase = true) }
+            }
+            Box(Modifier.fillMaxSize()) {
+                if (filtered.isEmpty()) {
+                    Text(
+                        text = if (items.isEmpty()) {
+                            "No saved novels yet.\nBookmark one from its page."
+                        } else {
+                            "Nothing in ${tab.label}."
+                        },
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.align(Alignment.Center).padding(24.dp),
+                    )
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        items(filtered) { item -> LibraryRow(item) { onOpenNovel(item.novel.novelUrl) } }
+                    }
                 }
             }
         }
@@ -99,8 +139,36 @@ fun LibraryScreen(
 }
 
 @Composable
+private fun TabChips(selected: LibraryTab, onSelect: (LibraryTab) -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        LibraryTab.entries.forEach { entry ->
+            val isSelected = entry == selected
+            Text(
+                text = entry.label,
+                style = MaterialTheme.typography.labelLarge,
+                color = if (isSelected) {
+                    MaterialTheme.colorScheme.onPrimaryContainer
+                } else {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                },
+                modifier = Modifier
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(
+                        if (isSelected) MaterialTheme.colorScheme.primaryContainer else Color.Transparent,
+                    )
+                    .clickable { onSelect(entry) }
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+            )
+        }
+    }
+}
+
+@Composable
 private fun LibraryRow(item: LibraryItem, onClick: () -> Unit) {
-    androidx.compose.foundation.layout.Row(
+    Row(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick),
@@ -139,9 +207,7 @@ private fun LibraryRow(item: LibraryItem, onClick: () -> Unit) {
                 )
                 LinearProgressIndicator(
                     progress = { fraction },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 4.dp),
+                    modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
                 )
             }
         }

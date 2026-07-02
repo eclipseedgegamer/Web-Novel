@@ -13,6 +13,19 @@ data class LibraryNovelEntity(
     val author: String?,
     val status: String?,
     val addedAt: Long,
+    val lastKnownChapters: Int = 0,
+)
+
+/** A new chapter found for a library novel by the background update check. */
+@Entity(tableName = "chapter_updates")
+data class ChapterUpdateEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val novelUrl: String,
+    val novelTitle: String,
+    val chapterUrl: String,
+    val chapterTitle: String,
+    val foundAt: Long,
+    val seen: Boolean,
 )
 
 /** Where the user last was in a novel: the last-opened chapter and its position. */

@@ -20,4 +20,10 @@ interface LibraryDao {
 
     @Query("DELETE FROM library_novels WHERE novelUrl = :url")
     suspend fun delete(url: String)
+
+    @Query("SELECT * FROM library_novels")
+    suspend fun allOnce(): List<LibraryNovelEntity>
+
+    @Query("UPDATE library_novels SET lastKnownChapters = :count WHERE novelUrl = :url")
+    suspend fun updateKnownChapters(url: String, count: Int)
 }

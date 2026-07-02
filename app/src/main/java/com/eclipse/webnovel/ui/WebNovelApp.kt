@@ -36,6 +36,7 @@ import com.eclipse.webnovel.ui.library.LibraryScreen
 import com.eclipse.webnovel.ui.reader.ReaderScreen
 import com.eclipse.webnovel.ui.saved.SavedScreen
 import com.eclipse.webnovel.ui.screens.SearchScreen
+import com.eclipse.webnovel.ui.updates.UpdatesScreen
 import com.eclipse.webnovel.ui.screens.SettingsScreen
 import com.eclipse.webnovel.ui.theme.AppTheme
 import com.eclipse.webnovel.ui.theme.liquidGlassSurface
@@ -77,7 +78,10 @@ fun WebNovelApp(
             }
             composable(TopDest.Search.route) { SearchScreen() }
             composable(TopDest.Library.route) {
-                LibraryScreen(onOpenNovel = { navController.navigate("${Routes.DETAIL}?url=${Uri.encode(it)}") })
+                LibraryScreen(
+                    onOpenNovel = { navController.navigate("${Routes.DETAIL}?url=${Uri.encode(it)}") },
+                    onOpenUpdates = { navController.navigate(Routes.UPDATES) },
+                )
             }
             composable(TopDest.Saved.route) { SavedScreen() }
             composable(Routes.SETTINGS) {
@@ -101,6 +105,12 @@ fun WebNovelApp(
                 arguments = listOf(navArgument("url") { type = NavType.StringType }),
             ) {
                 ReaderScreen(onBack = { navController.popBackStack() })
+            }
+            composable(Routes.UPDATES) {
+                UpdatesScreen(
+                    onBack = { navController.popBackStack() },
+                    onOpenChapter = { navController.navigate("${Routes.READER}?url=${Uri.encode(it)}") },
+                )
             }
         }
     }

@@ -11,8 +11,9 @@ import androidx.room.RoomDatabase
         ReadingStateEntity::class,
         DownloadedChapterEntity::class,
         DownloadStatusEntity::class,
+        ChapterUpdateEntity::class,
     ],
-    version = 3,
+    version = 4,
     exportSchema = false,
 )
 abstract class WebNovelDatabase : RoomDatabase() {
@@ -20,6 +21,7 @@ abstract class WebNovelDatabase : RoomDatabase() {
     abstract fun libraryDao(): LibraryDao
     abstract fun readingStateDao(): ReadingStateDao
     abstract fun downloadDao(): DownloadDao
+    abstract fun chapterUpdateDao(): ChapterUpdateDao
 
     companion object {
         @Volatile
