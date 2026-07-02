@@ -62,7 +62,7 @@ import com.eclipse.webnovel.data.download.DownloadRepository
 import com.eclipse.webnovel.data.model.ChapterContent
 import com.eclipse.webnovel.data.settings.ProgressRepository
 import com.eclipse.webnovel.data.settings.SettingsRepository
-import com.eclipse.webnovel.data.source.RoyalRoadSource
+import com.eclipse.webnovel.data.source.SourceRegistry
 import com.eclipse.webnovel.ui.theme.liquidGlassSurface
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -85,7 +85,6 @@ class ReaderViewModel(
     savedStateHandle: SavedStateHandle,
 ) : AndroidViewModel(app) {
 
-    private val source = RoyalRoadSource()
     private val progress = ProgressRepository(app)
     private val settings = SettingsRepository(app)
     private val downloads = DownloadRepository(app)
@@ -115,7 +114,7 @@ class ReaderViewModel(
                     ),
                 )
             } else {
-                runCatching { source.chapter(chapterUrl) }.fold(
+                runCatching { SourceRegistry.sourceFor(chapterUrl).chapter(chapterUrl) }.fold(
                     onSuccess = { ReaderUiState.Success(it) },
                     onFailure = { ReaderUiState.Error(it.message ?: "Failed to load chapter") },
                 )

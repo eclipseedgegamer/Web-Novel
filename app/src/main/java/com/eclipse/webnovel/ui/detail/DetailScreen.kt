@@ -50,7 +50,7 @@ import com.eclipse.webnovel.data.download.DownloadRepository
 import com.eclipse.webnovel.data.library.LibraryRepository
 import com.eclipse.webnovel.data.model.ChapterRef
 import com.eclipse.webnovel.data.model.NovelDetail
-import com.eclipse.webnovel.data.source.RoyalRoadSource
+import com.eclipse.webnovel.data.source.SourceRegistry
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -69,7 +69,6 @@ class DetailViewModel(
     savedStateHandle: SavedStateHandle,
 ) : AndroidViewModel(app) {
 
-    private val source = RoyalRoadSource()
     private val library = LibraryRepository(app)
     private val downloads = DownloadRepository(app)
     private val novelUrl: String = requireNotNull(savedStateHandle.get<String>("url")) { "missing url arg" }
@@ -88,7 +87,7 @@ class DetailViewModel(
     fun load() {
         _state.value = DetailUiState.Loading
         viewModelScope.launch {
-            _state.value = runCatching { source.detail(novelUrl) }.fold(
+            _state.value = runCatching { SourceRegistry.sourceFor(novelUrl).detail(novelUrl) }.fold(
                 onSuccess = { DetailUiState.Success(it) },
                 onFailure = { DetailUiState.Error(it.message ?: "Failed to load") },
             )

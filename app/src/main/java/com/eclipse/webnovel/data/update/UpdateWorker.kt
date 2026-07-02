@@ -5,7 +5,7 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.eclipse.webnovel.data.db.ChapterUpdateEntity
 import com.eclipse.webnovel.data.db.WebNovelDatabase
-import com.eclipse.webnovel.data.source.RoyalRoadSource
+import com.eclipse.webnovel.data.source.SourceRegistry
 import kotlinx.coroutines.delay
 
 /** Periodically re-checks each library novel for new chapters and records them. */
@@ -18,11 +18,10 @@ class UpdateWorker(
         val db = WebNovelDatabase.get(applicationContext)
         val libraryDao = db.libraryDao()
         val updateDao = db.chapterUpdateDao()
-        val source = RoyalRoadSource()
         var newCount = 0
         for (novel in libraryDao.allOnce()) {
             try {
-                val detail = source.detail(novel.novelUrl)
+                val detail = SourceRegistry.sourceFor(novel.novelUrl).detail(novel.novelUrl)
                 val total = detail.chapters.size
                 if (novel.lastKnownChapters in 1 until total) {
                     val now = System.currentTimeMillis()

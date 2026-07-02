@@ -4,14 +4,20 @@ import com.eclipse.webnovel.data.model.ChapterContent
 import com.eclipse.webnovel.data.model.NovelDetail
 import com.eclipse.webnovel.data.model.NovelSummary
 
-/** A pluggable novel site. RoyalRoad is the first; the registry fans out in Phase 3. */
+/** A pluggable novel site. Sources are resolved by URL host via [SourceRegistry]. */
 interface NovelSource {
     val id: String
     val name: String
     val baseUrl: String
 
-    /** A browsable list for Explore (e.g. Rising Stars). */
+    /** URL host fragment used to route a novel/chapter URL back to this source. */
+    val host: String
+
+    /** A browsable list for Explore. */
     suspend fun explore(): List<NovelSummary>
+
+    /** Search this source for [query]. */
+    suspend fun search(query: String): List<NovelSummary>
 
     /** Full detail page for a novel. */
     suspend fun detail(novelUrl: String): NovelDetail

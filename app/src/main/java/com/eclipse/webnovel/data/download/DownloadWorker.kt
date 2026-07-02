@@ -6,7 +6,7 @@ import androidx.work.WorkerParameters
 import com.eclipse.webnovel.data.db.DownloadStatusEntity
 import com.eclipse.webnovel.data.db.DownloadedChapterEntity
 import com.eclipse.webnovel.data.db.WebNovelDatabase
-import com.eclipse.webnovel.data.source.RoyalRoadSource
+import com.eclipse.webnovel.data.source.SourceRegistry
 import kotlinx.coroutines.delay
 
 /** Downloads every chapter of a novel into the local cache, updating progress in Room. */
@@ -18,7 +18,7 @@ class DownloadWorker(
     override suspend fun doWork(): Result {
         val novelUrl = inputData.getString(KEY_NOVEL_URL) ?: return Result.failure()
         val dao = WebNovelDatabase.get(applicationContext).downloadDao()
-        val source = RoyalRoadSource()
+        val source = SourceRegistry.sourceFor(novelUrl)
         return try {
             val detail = source.detail(novelUrl)
             val total = detail.chapters.size
