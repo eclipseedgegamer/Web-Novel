@@ -17,6 +17,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.outlined.BookmarkBorder
+import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -45,6 +46,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.eclipse.webnovel.data.db.ReadingStateEntity
+import com.eclipse.webnovel.data.download.DownloadRepository
 import com.eclipse.webnovel.data.library.LibraryRepository
 import com.eclipse.webnovel.data.model.ChapterRef
 import com.eclipse.webnovel.data.model.NovelDetail
@@ -69,6 +71,7 @@ class DetailViewModel(
 
     private val source = RoyalRoadSource()
     private val library = LibraryRepository(app)
+    private val downloads = DownloadRepository(app)
     private val novelUrl: String = requireNotNull(savedStateHandle.get<String>("url")) { "missing url arg" }
 
     private val _state = MutableStateFlow<DetailUiState>(DetailUiState.Loading)
@@ -102,6 +105,10 @@ class DetailViewModel(
     fun recordReading(chapter: ChapterRef, index: Int, total: Int) {
         viewModelScope.launch { library.recordReading(novelUrl, chapter, index, total) }
     }
+
+    fun download() {
+        downloads.enqueue(novelUrl)
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -126,6 +133,9 @@ fun DetailScreen(
                     }
                 },
                 actions = {
+                    IconButton(onClick = viewModel::download) {
+                        Icon(Icons.Outlined.Download, contentDescription = "Download")
+                    }
                     IconButton(onClick = viewModel::toggleLibrary) {
                         Icon(
                             imageVector = if (inLibrary) Icons.Filled.Bookmark else Icons.Outlined.BookmarkBorder,

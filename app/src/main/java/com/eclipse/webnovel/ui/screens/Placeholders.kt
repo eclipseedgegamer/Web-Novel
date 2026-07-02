@@ -21,11 +21,6 @@ fun SearchScreen() {
     PlaceholderScaffold(title = "Search", body = "Search across sources.")
 }
 
-@Composable
-fun SavedScreen() {
-    PlaceholderScaffold(title = "Saved", body = "Offline downloads and storage.")
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun PlaceholderScaffold(title: String, body: String) {

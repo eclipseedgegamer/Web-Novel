@@ -25,3 +25,24 @@ data class ReadingStateEntity(
     val totalChapters: Int,
     val updatedAt: Long,
 )
+
+/** A chapter cached for offline reading. `content` = paragraphs joined by blank lines. */
+@Entity(tableName = "downloaded_chapters")
+data class DownloadedChapterEntity(
+    @PrimaryKey val chapterUrl: String,
+    val novelUrl: String,
+    val title: String,
+    val orderIndex: Int,
+    val content: String,
+)
+
+/** Per-novel download progress for the Saved screen. */
+@Entity(tableName = "download_status")
+data class DownloadStatusEntity(
+    @PrimaryKey val novelUrl: String,
+    val title: String,
+    val coverUrl: String?,
+    val total: Int,
+    val done: Int,
+    val state: String,
+)

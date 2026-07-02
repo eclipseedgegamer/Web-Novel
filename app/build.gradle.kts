@@ -64,6 +64,7 @@ dependencies {
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
     ksp(libs.room.compiler)
+    implementation(libs.androidx.work.runtime.ktx)
     // haze (backdrop blur) is wired in the dedicated glass step; catalog entry kept ready.
     debugImplementation(libs.androidx.ui.tooling)
     testImplementation(libs.junit)

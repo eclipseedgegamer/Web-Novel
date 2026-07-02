@@ -6,14 +6,20 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 
 @Database(
-    entities = [LibraryNovelEntity::class, ReadingStateEntity::class],
-    version = 2,
+    entities = [
+        LibraryNovelEntity::class,
+        ReadingStateEntity::class,
+        DownloadedChapterEntity::class,
+        DownloadStatusEntity::class,
+    ],
+    version = 3,
     exportSchema = false,
 )
 abstract class WebNovelDatabase : RoomDatabase() {
 
     abstract fun libraryDao(): LibraryDao
     abstract fun readingStateDao(): ReadingStateDao
+    abstract fun downloadDao(): DownloadDao
 
     companion object {
         @Volatile

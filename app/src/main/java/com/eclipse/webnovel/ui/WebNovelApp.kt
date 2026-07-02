@@ -34,7 +34,7 @@ import com.eclipse.webnovel.ui.detail.DetailScreen
 import com.eclipse.webnovel.ui.explore.ExploreScreen
 import com.eclipse.webnovel.ui.library.LibraryScreen
 import com.eclipse.webnovel.ui.reader.ReaderScreen
-import com.eclipse.webnovel.ui.screens.SavedScreen
+import com.eclipse.webnovel.ui.saved.SavedScreen
 import com.eclipse.webnovel.ui.screens.SearchScreen
 import com.eclipse.webnovel.ui.screens.SettingsScreen
 import com.eclipse.webnovel.ui.theme.AppTheme

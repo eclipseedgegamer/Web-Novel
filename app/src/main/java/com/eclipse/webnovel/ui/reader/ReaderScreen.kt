@@ -58,6 +58,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.eclipse.webnovel.data.download.DownloadRepository
 import com.eclipse.webnovel.data.model.ChapterContent
 import com.eclipse.webnovel.data.settings.ProgressRepository
 import com.eclipse.webnovel.data.settings.SettingsRepository
@@ -87,6 +88,7 @@ class ReaderViewModel(
     private val source = RoyalRoadSource()
     private val progress = ProgressRepository(app)
     private val settings = SettingsRepository(app)
+    private val downloads = DownloadRepository(app)
     private val chapterUrl: String = requireNotNull(savedStateHandle.get<String>("url")) { "missing url arg" }
 
     val fontSize: StateFlow<Int> = settings.readerFontSp
@@ -104,10 +106,20 @@ class ReaderViewModel(
         _state.value = ReaderUiState.Loading
         viewModelScope.launch {
             restoreParagraph = progress.get(chapterUrl)?.paragraphIndex ?: 0
-            _state.value = runCatching { source.chapter(chapterUrl) }.fold(
-                onSuccess = { ReaderUiState.Success(it) },
-                onFailure = { ReaderUiState.Error(it.message ?: "Failed to load chapter") },
-            )
+            val cached = downloads.cachedChapter(chapterUrl)
+            _state.value = if (cached != null) {
+                ReaderUiState.Success(
+                    ChapterContent(
+                        title = cached.title,
+                        paragraphs = cached.content.split("\n\n").map { it.trim() }.filter { it.isNotEmpty() },
+                    ),
+                )
+            } else {
+                runCatching { source.chapter(chapterUrl) }.fold(
+                    onSuccess = { ReaderUiState.Success(it) },
+                    onFailure = { ReaderUiState.Error(it.message ?: "Failed to load chapter") },
+                )
+            }
         }
     }
 
